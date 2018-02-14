@@ -1,7 +1,7 @@
 <template>
   <div class="page page--kawasan-index">
     <full-map>
-      <!-- <map-marker v-for="marker in markers" :key="marker.properties.id" v-bind="marker" @onClick="onMarkerClick"></map-marker> -->
+      <map-marker v-for="marker in markers" :key="marker.properties.id" v-bind="marker" @onClick="onMarkerClick"></map-marker>
     </full-map>
 
     <div class="columns">
