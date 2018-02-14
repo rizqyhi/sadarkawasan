@@ -1,7 +1,7 @@
 import http from '@/utils/http'
 
 export default {
-  getAll () {
-    return http.get('/locations')
+  getAll (params = {}) {
+    return http.get('/locations', {params})
   }
 }

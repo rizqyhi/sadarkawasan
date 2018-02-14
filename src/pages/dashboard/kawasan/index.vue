@@ -15,7 +15,10 @@
             <b-input placeholder="Cari kawasan" v-model="searchTerm" />
           </b-field>
 
-          <kawasan-list v-bind="{kawasan}"></kawasan-list>
+          <div class="kawasan-list-wrapper" ref="listWrapper">
+            <kawasan-list v-bind="{kawasan}"></kawasan-list>
+            <infinite-loading @infinite="handleInfiniteLoading"></infinite-loading>
+          </div>
         </div>
       </div>
     </div>
@@ -23,6 +26,7 @@
 </template>
 
 <script>
+  import InfiniteLoading from 'vue-infinite-loading'
   import FullMap from '@/components/FullMap'
   import MapMarker from '@/components/MapMarker'
   import KawasanList from './KawasanList'
@@ -30,12 +34,13 @@
   import locationService from '@/services/location'
 
   export default {
-    components: { FullMap, MapMarker, KawasanList },
+    components: { FullMap, MapMarker, KawasanList, InfiniteLoading },
 
     data () {
       return {
         kawasan: [],
-        searchTerm: ''
+        searchTerm: '',
+        currentPage: 1
       }
     },
 
@@ -57,9 +62,21 @@
 
     methods: {
       getKawasanFromDb () {
-        locationService.getAll()
+        return locationService.getAll({page: this.currentPage})
           .then(response => {
             this.kawasan = this.kawasan.concat(response.data.data)
+            this.currentPage = response.data.meta.current_page + 1
+
+            return response
+          })
+      },
+
+      handleInfiniteLoading ($state) {
+        this.getKawasanFromDb()
+          .then(response => {
+            $state.loaded()
+
+            if (!response.data.links.next) $state.complete()
           })
       },
 
@@ -69,7 +86,12 @@
     },
 
     mounted () {
-      this.getKawasanFromDb()
+      let $list = this.$refs.listWrapper
+      let windowHeight = window.innerHeight
+      let listOffset = $list.getBoundingClientRect()
+      let maxHeight = windowHeight - listOffset.top - 20
+
+      $list.style.maxHeight = maxHeight + 'px'
     }
   }
 </script>
@@ -94,5 +116,9 @@
   .kawasan-box__create {
     padding: 1rem;
     border-bottom: 1px solid $white-ter;
+  }
+
+  .kawasan-list-wrapper {
+    overflow-y: auto
   }
 </style>
